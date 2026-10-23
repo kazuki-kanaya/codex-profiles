@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
+	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/kazuki-kanaya/codex-profiles/internal/profile"
 	"github.com/spf13/cobra"
@@ -17,8 +20,9 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		writer := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 4, 2, ' ', 0)
-		if _, err := fmt.Fprintln(writer, "PROFILE\tPLAN\t5H LEFT\t1W LEFT\tRESETS"); err != nil {
+		var table bytes.Buffer
+		writer := tabwriter.NewWriter(&table, 0, 4, 2, ' ', 0)
+		if _, err := fmt.Fprintln(writer, "PROFILE\tEMAIL\tPLAN\t5H LEFT\t1W LEFT\tRESETS"); err != nil {
 			return err
 		}
 
@@ -28,6 +32,10 @@ var listCmd = &cobra.Command{
 				cmd.PrintErrf("%s: %v\n", name, err)
 			}
 
+			email := usage.Email
+			if email == "" {
+				email = "-"
+			}
 			plan := usage.Plan
 			if plan == "" {
 				plan = "-"
@@ -38,24 +46,34 @@ var listCmd = &cobra.Command{
 			}
 
 			if _, err := fmt.Fprintf(
-				writer, "%s\t%s\t%s\t%s\t%s\n",
-				name, plan,
-				formatRemaining(usage.FiveHourRemaining),
-				formatRemaining(usage.WeeklyRemaining),
+				writer, "%s\t%s\t%s\t%s\t%s\t%s\n",
+				name, email, plan,
+				formatRemaining(usage.FiveHourRemaining, usage.FiveHourResetsAt, "15:04"),
+				formatRemaining(usage.WeeklyRemaining, usage.WeeklyResetsAt, "01/02 15:04"),
 				resets,
 			); err != nil {
 				return err
 			}
 		}
-		return writer.Flush()
+		if err := writer.Flush(); err != nil {
+			return err
+		}
+
+		header, rows, _ := strings.Cut(table.String(), "\n")
+		_, err = fmt.Fprintf(cmd.OutOrStdout(), "\x1b[1;36m%s\x1b[0m\n%s", header, rows)
+		return err
 	},
 }
 
-func formatRemaining(remaining *float64) string {
+func formatRemaining(remaining *float64, resetsAt *int64, layout string) string {
 	if remaining == nil {
 		return "-"
 	}
-	return fmt.Sprintf("%.0f%%", *remaining)
+	value := fmt.Sprintf("%.0f%%", *remaining)
+	if resetsAt != nil {
+		value += " (" + time.Unix(*resetsAt, 0).Local().Format(layout) + ")"
+	}
+	return value
 }
 
 func init() {

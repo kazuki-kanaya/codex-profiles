@@ -26,9 +26,18 @@ type resetCredits struct {
 }
 
 type quotaResult struct {
+	Email                 string                 `json:"-"`
 	RateLimits            quotaBucket            `json:"rateLimits"`
 	RateLimitsByLimitID   map[string]quotaBucket `json:"rateLimitsByLimitId"`
 	RateLimitResetCredits *resetCredits          `json:"rateLimitResetCredits"`
+}
+
+type accountInfo struct {
+	Email string `json:"email"`
+}
+
+type accountResult struct {
+	Account *accountInfo `json:"account"`
 }
 
 type rpcError struct {
@@ -42,9 +51,12 @@ type rpcResponse struct {
 }
 
 type Usage struct {
+	Email             string
 	Plan              string
 	FiveHourRemaining *float64
+	FiveHourResetsAt  *int64
 	WeeklyRemaining   *float64
+	WeeklyResetsAt    *int64
 	ResetCredits      *int
 }
 
@@ -56,6 +68,7 @@ func ReadUsage(name string) (Usage, error) {
 		return usage, err
 	}
 	result, err := readUsage(profileDir)
+	usage.Email = result.Email
 	if err != nil {
 		return usage, err
 	}
@@ -74,8 +87,10 @@ func ReadUsage(name string) (Usage, error) {
 		switch *window.WindowDurationMins {
 		case 300:
 			usage.FiveHourRemaining = &remaining
+			usage.FiveHourResetsAt = window.ResetsAt
 		case 10080:
 			usage.WeeklyRemaining = &remaining
+			usage.WeeklyResetsAt = window.ResetsAt
 		}
 	}
 	if result.RateLimitResetCredits != nil {
@@ -158,7 +173,19 @@ func readUsage(profileDir string) (quotaResult, error) {
 		return result, err
 	}
 
-	data, err := call(2, "account/rateLimits/read", nil)
+	data, err := call(2, "account/read", map[string]any{"refreshToken": false})
+	if err != nil {
+		return result, err
+	}
+	var account accountResult
+	if err := json.Unmarshal(data, &account); err != nil {
+		return result, err
+	}
+	if account.Account != nil {
+		result.Email = account.Account.Email
+	}
+
+	data, err = call(3, "account/rateLimits/read", nil)
 	if err != nil {
 		return result, err
 	}
