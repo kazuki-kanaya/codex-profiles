@@ -75,5 +75,11 @@ func Add(name string) error {
 	); err != nil {
 		return errors.Join(err, os.Remove(profileDir))
 	}
+
+	configPath := filepath.Join(profileDir, "config.toml")
+	config := []byte("cli_auth_credentials_store = \"file\"\n")
+	if err = os.WriteFile(configPath, config, 0o600); err != nil {
+		return errors.Join(err, os.RemoveAll(profileDir))
+	}
 	return nil
 }
