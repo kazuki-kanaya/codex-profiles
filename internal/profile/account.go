@@ -39,6 +39,14 @@ func SessionsDir() (string, error) {
 	return filepath.Join(userHomeDir, ".codex", "sessions"), nil
 }
 
+func ProfileDir(name string) (string, error) {
+	baseDir, err := BaseDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(baseDir, name), nil
+}
+
 func Add(name string) error {
 	sessionsDir, err := SessionsDir()
 	if err != nil {
@@ -61,7 +69,10 @@ func Add(name string) error {
 		return err
 	}
 
-	profileDir := filepath.Join(baseDir, name)
+	profileDir, err := ProfileDir(name)
+	if err != nil {
+		return err
+	}
 	if err := os.Mkdir(profileDir, 0o700); err != nil {
 		if errors.Is(err, os.ErrExist) {
 			return fmt.Errorf("profile %q already exists", name)
@@ -88,12 +99,11 @@ func Add(name string) error {
 }
 
 func Run(name string, args ...string) error {
-	baseDir, err := BaseDir()
+	profileDir, err := ProfileDir(name)
 	if err != nil {
 		return err
 	}
 
-	profileDir := filepath.Join(baseDir, name)
 	info, err := os.Lstat(profileDir)
 	if err != nil {
 		return err
@@ -103,4 +113,25 @@ func Run(name string, args ...string) error {
 	}
 
 	return RunCodex(profileDir, args...)
+}
+
+func Remove(name string) error {
+	if err := ValidateName(name); err != nil {
+		return err
+	}
+
+	profileDir, err := ProfileDir(name)
+	if err != nil {
+		return err
+	}
+
+	info, err := os.Lstat(profileDir)
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("profile must be a real directory: %s", profileDir)
+	}
+
+	return os.RemoveAll(profileDir)
 }
