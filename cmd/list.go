@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"sync"
 	"text/tabwriter"
 	"time"
 
@@ -20,16 +21,33 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		results := make([]struct {
+			usage profile.Usage
+			err   error
+		}, len(names))
+		var workers sync.WaitGroup
+		slots := make(chan struct{}, 4)
+		for i, name := range names {
+			slots <- struct{}{}
+			workers.Add(1)
+			go func() {
+				defer workers.Done()
+				defer func() { <-slots }()
+				results[i].usage, results[i].err = profile.ReadUsage(name)
+			}()
+		}
+		workers.Wait()
+
 		var table bytes.Buffer
 		writer := tabwriter.NewWriter(&table, 0, 4, 2, ' ', 0)
 		if _, err := fmt.Fprintln(writer, "PROFILE\tEMAIL\tPLAN\t5H LEFT\t1W LEFT\tRESETS"); err != nil {
 			return err
 		}
 
-		for _, name := range names {
-			usage, err := profile.ReadUsage(name)
-			if err != nil {
-				cmd.PrintErrf("%s: %v\n", name, err)
+		for i, name := range names {
+			usage := results[i].usage
+			if results[i].err != nil {
+				cmd.PrintErrf("%s: %v\n", name, results[i].err)
 			}
 
 			email := usage.Email
