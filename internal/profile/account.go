@@ -81,5 +81,8 @@ func Add(name string) error {
 	if err = os.WriteFile(configPath, config, 0o600); err != nil {
 		return errors.Join(err, os.RemoveAll(profileDir))
 	}
+	if err := RunCodex(profileDir, "login"); err != nil {
+		return errors.Join(err, os.RemoveAll(profileDir))
+	}
 	return nil
 }
