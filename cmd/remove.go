@@ -18,6 +18,7 @@ var removeCmd = &cobra.Command{
 			return err
 		}
 
+		cmd.Printf("Close Codex for profile %q before continuing. Its daemon will be stopped automatically.\n", name)
 		cmd.Printf("Remove profile %q? [y/N]: ", name)
 
 		scanner := bufio.NewScanner(cmd.InOrStdin())

@@ -157,6 +157,9 @@ func Remove(name string) error {
 	if !info.IsDir() {
 		return fmt.Errorf("profile must be a real directory: %s", profileDir)
 	}
+	if err := RunCodex(profileDir, "app-server", "daemon", "stop"); err != nil {
+		return fmt.Errorf("stop daemon for profile %q before removing: %w", name, err)
+	}
 
 	return os.RemoveAll(profileDir)
 }
