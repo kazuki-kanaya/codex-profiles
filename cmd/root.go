@@ -9,8 +9,22 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "codex-profiles",
-	Short: "Manage separate Codex account profiles",
+	Use:                "codex-profiles [PROFILE] [codex args...]",
+	Short:              "Manage separate Codex account profiles",
+	DisableFlagParsing: true,
+	Args:               cobra.ArbitraryArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) == 0 ||
+			(len(args) == 1 && (args[0] == "-h" || args[0] == "--help")) {
+			return cmd.Help()
+		}
+
+		name := args[0]
+		if err := validateProfileName(cmd, name); err != nil {
+			return err
+		}
+		return profile.Run(name, args[1:]...)
+	},
 }
 
 func Execute() {

@@ -86,3 +86,21 @@ func Add(name string) error {
 	}
 	return nil
 }
+
+func Run(name string, args ...string) error {
+	baseDir, err := BaseDir()
+	if err != nil {
+		return err
+	}
+
+	profileDir := filepath.Join(baseDir, name)
+	info, err := os.Lstat(profileDir)
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("profile must be a real directory: %s", profileDir)
+	}
+
+	return RunCodex(profileDir, args...)
+}
