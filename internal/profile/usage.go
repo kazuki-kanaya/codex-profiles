@@ -41,6 +41,49 @@ type rpcResponse struct {
 	Error  *rpcError       `json:"error"`
 }
 
+type Usage struct {
+	Plan              string
+	FiveHourRemaining *float64
+	WeeklyRemaining   *float64
+	ResetCredits      *int
+}
+
+func ReadUsage(name string) (Usage, error) {
+	var usage Usage
+
+	profileDir, err := ProfileDir(name)
+	if err != nil {
+		return usage, err
+	}
+	result, err := readUsage(profileDir)
+	if err != nil {
+		return usage, err
+	}
+
+	bucket := result.RateLimits
+	if codex, ok := result.RateLimitsByLimitID["codex"]; ok {
+		bucket = codex
+	}
+	usage.Plan = bucket.PlanType
+
+	for _, window := range []*quotaWindow{bucket.Primary, bucket.Secondary} {
+		if window == nil || window.WindowDurationMins == nil {
+			continue
+		}
+		remaining := 100 - window.UsedPercent
+		switch *window.WindowDurationMins {
+		case 300:
+			usage.FiveHourRemaining = &remaining
+		case 10080:
+			usage.WeeklyRemaining = &remaining
+		}
+	}
+	if result.RateLimitResetCredits != nil {
+		usage.ResetCredits = &result.RateLimitResetCredits.AvailableCount
+	}
+	return usage, nil
+}
+
 func readUsage(profileDir string) (quotaResult, error) {
 	var result quotaResult
 
