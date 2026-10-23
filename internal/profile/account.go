@@ -244,6 +244,9 @@ func Rename(oldName, newName string) (err error) {
 	if err != nil {
 		return err
 	}
+	if err := RunCodex(oldDir, "app-server", "daemon", "stop"); err != nil {
+		return fmt.Errorf("stop daemon for profile %q before renaming: %w", oldName, err)
+	}
 	if err := os.Mkdir(newDir, 0o700); err != nil {
 		return err
 	}

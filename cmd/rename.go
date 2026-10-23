@@ -21,7 +21,7 @@ var renameCmd = &cobra.Command{
 			return err
 		}
 
-		cmd.Printf("Stop Codex and its daemon for profile %q before continuing.\n", oldName)
+		cmd.Printf("Close Codex for profile %q before continuing. Its daemon will be stopped automatically.\n", oldName)
 		cmd.Printf("Rename profile %q to %q? [y/N]: ", oldName, newName)
 		scanner := bufio.NewScanner(cmd.InOrStdin())
 		if !scanner.Scan() {
