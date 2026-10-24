@@ -7,6 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/kazuki-kanaya/codex-profiles/internal/profile"
+	"github.com/kazuki-kanaya/codex-profiles/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +20,10 @@ var rootCmd = &cobra.Command{
 		if len(args) == 0 ||
 			(len(args) == 1 && (args[0] == "-h" || args[0] == "--help")) {
 			return cmd.Help()
+		}
+		if len(args) == 1 && args[0] == "--version" {
+			_, err := fmt.Fprintf(cmd.OutOrStdout(), "%s version %s\n", cmd.Name(), version.Version)
+			return err
 		}
 
 		name := args[0]

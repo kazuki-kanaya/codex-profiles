@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/kazuki-kanaya/codex-profiles/internal/version"
 )
 
 type quotaWindow struct {
@@ -160,7 +162,7 @@ func readUsage(profileDir string) (quotaResult, error) {
 	if _, err := call(1, "initialize", map[string]any{
 		"clientInfo": map[string]string{
 			"name":    "codex-profiles",
-			"version": "0.1.0",
+			"version": version.Version,
 		},
 	}); err != nil {
 		return result, err
