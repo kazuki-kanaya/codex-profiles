@@ -1,6 +1,11 @@
 <div align="center">
 
 <h1>codex-profiles</h1>
+<p>
+Codex CLIの複数アカウントを管理するツール。<br>
+複数アカウントを同時に起動でき、利用枠の残量もまとめて確認できます。<br>
+Codex Desktopとセッション履歴を共有し、別のアカウントから続きを再開することもできます。
+</p>
 
 <p>
   <a href="https://github.com/kazuki-kanaya/codex-profiles/actions/workflows/ci.yaml"><img src="https://github.com/kazuki-kanaya/codex-profiles/actions/workflows/ci.yaml/badge.svg?branch=main" alt="CI"></a>
