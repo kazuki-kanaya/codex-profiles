@@ -19,6 +19,17 @@ archives:
       - tar.gz
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
+homebrew_casks:
+  - name: codex-profiles
+    binaries:
+      - codex-profiles
+    homepage: https://github.com/kazuki-kanaya/codex-profiles
+    description: Run Codex CLI with multiple accounts simultaneously
+    repository:
+      owner: kazuki-kanaya
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+
 changelog:
   sort: asc
   filters:
