@@ -1,11 +1,14 @@
 package profile
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"regexp"
+	"syscall"
 )
 
 var namePattern = regexp.MustCompile(`^[a-z][a-z0-9_-]*$`)
@@ -59,6 +62,9 @@ func ProfileDir(name string) (string, error) {
 }
 
 func Add(name string) (err error) {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	baseDir, err := BaseDir()
 	if err != nil {
 		return err
@@ -93,7 +99,10 @@ func Add(name string) (err error) {
 	if err = os.WriteFile(configPath, config, 0o600); err != nil {
 		return err
 	}
-	return RunCodex(profileDir, "login")
+	if err := runCodex(ctx, profileDir, "login"); err != nil {
+		return err
+	}
+	return ctx.Err()
 }
 
 func linkSessions(profileDir string) error {
