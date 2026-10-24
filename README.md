@@ -1,7 +1,6 @@
 <div align="center">
 
 <h1>codex-profiles</h1>
-<p>複数のChatGPTアカウントで、Codex CLIを同時に使えます。</p>
 
 <p>
   <a href="https://github.com/kazuki-kanaya/codex-profiles/actions/workflows/ci.yaml"><img src="https://github.com/kazuki-kanaya/codex-profiles/actions/workflows/ci.yaml/badge.svg?branch=main" alt="CI"></a>
