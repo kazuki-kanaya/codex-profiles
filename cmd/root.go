@@ -7,7 +7,6 @@ import (
 	"os/exec"
 
 	"github.com/kazuki-kanaya/codex-profiles/internal/profile"
-	"github.com/kazuki-kanaya/codex-profiles/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -22,8 +21,7 @@ var rootCmd = &cobra.Command{
 			return cmd.Help()
 		}
 		if len(args) == 1 && args[0] == "--version" {
-			_, err := fmt.Fprintf(cmd.OutOrStdout(), "%s version %s\n", cmd.Name(), version.Version)
-			return err
+			return printVersion(cmd, args)
 		}
 
 		name := args[0]
