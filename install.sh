@@ -60,9 +60,32 @@ tar -xzf "$tmp_dir/$archive" -C "$tmp_dir" codex-profiles
 mkdir -p "$install_dir"
 install -m 755 "$tmp_dir/codex-profiles" "$install_dir/codex-profiles"
 
-echo "Installed to $install_dir/codex-profiles"
+printf '\n🎉 Installed codex-profiles to %s/codex-profiles\n' "$install_dir"
 
 case ":$PATH:" in
-  *":$install_dir:"*) ;;
-  *) echo "Add $install_dir to your PATH." ;;
+  *":$install_dir:"*) exit 0 ;;
 esac
+
+escaped_dir=$(printf '%s' "$install_dir" | sed 's/[\\"$`]/\\&/g')
+path_line="export PATH=\"$escaped_dir:\$PATH\""
+
+user_shell="${SHELL:-}"
+case "${user_shell##*/}" in
+  zsh) shell_config="${ZDOTDIR:-$HOME}/.zshrc" ;;
+  bash) shell_config="$HOME/.bashrc" ;;
+  *)
+    printf '\nAdd this line to your shell configuration:\n\n  %s\n' "$path_line"
+    exit 0
+    ;;
+esac
+
+if ! grep -Fqx "$path_line" "$shell_config" 2>/dev/null; then
+  if printf '\n# codex-profiles\n%s\n' "$path_line" >> "$shell_config"; then
+    printf '\nPATH configuration added to %s.\n' "$shell_config"
+  else
+    printf '\nCould not update %s. Add this line manually:\n\n  %s\n' "$shell_config" "$path_line" >&2
+    exit 0
+  fi
+fi
+
+printf '\nRun the following command or open a new terminal:\n\n  source "%s"\n' "$shell_config"
