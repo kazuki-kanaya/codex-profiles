@@ -1,10 +1,13 @@
 <div align="center">
 
 <h1>Codex Profiles</h1>
+
+<p>English · <a href="README.ja.md">日本語</a> · <a href="README.zh-CN.md">简体中文</a></p>
+
 <p>
-複数のChatGPTアカウントでCodex CLIを使うためのツール。<br>
-複数アカウントを同時に起動でき、利用枠の残量もまとめて確認できます。<br>
-セッション履歴はCodex Desktopと自動で共有され、別のアカウントからも続きを再開できます。
+Use Codex CLI with multiple ChatGPT accounts.<br>
+Run accounts side by side and check their remaining usage limits in one place.<br>
+Session history is shared automatically with Codex Desktop, so you can pick up a session with another account.
 </p>
 
 <p>
@@ -14,40 +17,40 @@
 </p>
 
 <p>
-  <a href="#インストール">インストール</a> ·
-  <a href="#使い方">使い方</a> ·
-  <a href="#仕組みと保存先">仕組みと保存先</a>
+  <a href="#installation">Installation</a> ·
+  <a href="#usage">Usage</a> ·
+  <a href="#how-it-works">How it works</a>
 </p>
 
 </div>
 
-![codex-profilesで4つのアカウントの利用枠を確認し、mainを起動する例](docs/images/usage.png)
+![Checking usage limits for four accounts and launching Codex with main](assets/usage.png)
 
-## インストール
+## Installation
 
-先にCodex CLIをインストールし、`codex` コマンドが使える状態にしてください。
-macOS・Linuxのarm64／amd64向けに配布しています。
+Install Codex CLI first and make sure `codex` is on your PATH.
+Binaries are available for macOS and Linux on arm64 and amd64.
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/kazuki-kanaya/codex-profiles/main/install.sh | sh
 ```
 
-インストール先は `~/.local/bin` です。PATHが未設定の場合は、zshなら `~/.zshrc`、bashなら `~/.bashrc` に追記します。表示された `source` コマンドを実行するか、新しいターミナルを開いてください。
+The installer places the binary in `~/.local/bin`. If that directory is not on your PATH, it adds an entry to `~/.zshrc` for zsh or `~/.bashrc` for bash. Run the printed `source` command or open a new terminal.
 
-更新も同じインストールコマンドで行えます。別の場所に入れる場合は、`INSTALL_DIR` で指定できます。
+Run the same command to update. Set `INSTALL_DIR` to choose a different location.
 
 <details>
-<summary>Go・Homebrewからインストールする</summary>
+<summary>Install with Go or Homebrew</summary>
 
-Go 1.27.3以降：
+With Go 1.27.3 or later:
 
 ```sh
 go install github.com/kazuki-kanaya/codex-profiles@latest
 ```
 
-`GOBIN`、未設定なら `$(go env GOPATH)/bin` にPATHを通してください。
+Make sure `GOBIN`, or `$(go env GOPATH)/bin` if unset, is on your PATH.
 
-Homebrew：
+With Homebrew:
 
 ```sh
 brew install --cask kazuki-kanaya/tap/codex-profiles
@@ -55,11 +58,11 @@ brew install --cask kazuki-kanaya/tap/codex-profiles
 
 </details>
 
-> Mac版はAppleの公証を受けていません。起動をブロックされた場合は、入手元を確認したうえで「システム設定 → プライバシーとセキュリティ → このまま開く」から許可してください。
+> The macOS binaries are not notarized by Apple. If macOS blocks the app, verify where you downloaded it from, then allow it under **System Settings → Privacy & Security → Open Anyway**.
 
-## 使い方
+## Usage
 
-アカウントに名前をつけて登録します。`add` を実行するとCodexのログインが始まります。
+Give each account a profile name. `add` starts the Codex login flow.
 
 ```sh
 codex-profiles add main
@@ -67,44 +70,44 @@ codex-profiles add work
 codex-profiles list
 ```
 
-登録した名前を指定すると、そのアカウントで起動します。それぞれ別のターミナルで実行すれば、同時に使えます。
+Launch Codex by profile name. Use separate terminals to run accounts at the same time.
 
 ```sh
-codex-profiles main    # ターミナル1
-codex-profiles work    # ターミナル2
+codex-profiles main    # Terminal 1
+codex-profiles work    # Terminal 2
 ```
 
-名前の後ろには、いつものCodexの引数を渡せます。
+Arguments after the profile name are passed directly to Codex.
 
 ```sh
 codex-profiles work resume <SESSION_ID>
 ```
 
-短い名前で使うなら、シェルの設定にエイリアスを追加してください。
+For a shorter command, add an alias to your shell configuration:
 
 ```sh
 alias cdx='codex-profiles'
 ```
 
-### コマンド一覧
+### Commands
 
-| コマンド | 説明 |
+| Command | Description |
 | --- | --- |
-| `add NAME` | 登録してログイン |
-| `list` | アカウントと利用枠を表示 |
-| `NAME [args...]` | 指定したアカウントでCodexを起動 |
-| `rename OLD NEW` | 名前を変更 |
-| `remove NAME` | 削除 |
-| `version` / `--version` | バージョンを表示 |
-| `help` | ヘルプを表示 |
+| `add NAME` | Create a profile and log in |
+| `list` | Show accounts and remaining usage limits |
+| `NAME [args...]` | Run Codex with the selected account |
+| `rename OLD NEW` | Rename a profile |
+| `remove NAME` | Remove a profile |
+| `version` / `--version` | Print the version |
+| `help` | Show help |
 
-`list` のリセット時刻はローカル時刻です。取得できない値は `-` で表示します。
+Reset times in `list` use your local time zone. Unavailable values are shown as `-`.
 
-名前は小文字の英字で始め、以降は小文字の英字・数字・`-`・`_` が使えます。コマンド名は使えません。
+Profile names must start with a lowercase letter and may contain lowercase letters, digits, `-`, and `_`. Command names are reserved.
 
-## 仕組みと保存先
+## How it works
 
-アカウントを登録すると、専用の `CODEX_HOME` と共有履歴へのリンクを作成します。履歴共有のための設定は不要です。認証とトークン更新はCodexに任せ、Desktopの認証情報や設定は変更しません。
+Adding an account creates a separate `CODEX_HOME` and links to the shared session directories. Session sharing works out of the box. Codex handles authentication and token refresh; Desktop credentials and settings are left unchanged.
 
 ```text
 ~/.codex-profiles/
@@ -117,31 +120,31 @@ alias cdx='codex-profiles'
     └── ...
 ```
 
-共有するのは `sessions/` と `archived_sessions/` だけです。SQLiteやdaemonの状態はアカウントごとに保存します。
+Only `sessions/` and `archived_sessions/` are shared. SQLite databases and daemon state are kept separate for each account.
 
-同じセッションを複数のCodexから同時に更新しないでください。履歴一覧は完全には同期されないため、再開時はセッションIDを指定してください。`/fork`・`/side` や履歴形式の互換性は、Codexのバージョンに依存します。
+Do not update the same session from multiple Codex processes at once. Session lists may differ between clients, so use a session ID when resuming. Compatibility with `/fork`, `/side`, and session history formats depends on your Codex version.
 
 <details>
-<summary>保存先を変更したい場合</summary>
+<summary>Customize storage locations</summary>
 
-環境変数で指定できます。通常は変更不要です。
+Override these environment variables if needed. The defaults work without configuration.
 
-| 環境変数 | デフォルト |
+| Environment variable | Default |
 | --- | --- |
 | `CODEX_PROFILES_HOME` | `~/.codex-profiles` |
 | `CODEX_PROFILES_SESSIONS_DIR` | `~/.codex/sessions` |
 | `CODEX_PROFILES_ARCHIVED_SESSIONS_DIR` | `~/.codex/archived_sessions` |
 
-設定を変えても既存データやリンクは移動しません。プロファイルと共有履歴の保存先は、互いの配下に置かないでください。SQLiteを分離するため、`CODEX_SQLITE_HOME` は設定せずに使ってください。
+Changing these values does not move existing data or update links. Keep profile storage and shared history outside each other's directory trees. Leave `CODEX_SQLITE_HOME` unset to keep SQLite databases separate.
 
 </details>
 
-## 名前変更・削除について
+## Renaming and removing profiles
 
-対象のアカウントで動かしているCodexを終了してから実行してください。確認後にdaemonを自動停止し、停止できなければ処理を中断します。共有履歴のリンク先は削除しません。
+Close Codex processes using the account first. After confirmation, the tool stops its daemon automatically and aborts if the daemon cannot be stopped. Shared session files are not deleted.
 
-`rename` で引き継ぐのは `auth.json` と `config.toml` だけです。SQLiteやログなどは作り直します。その他の個別ファイルは事前に退避してください。`archived_sessions/` が通常のディレクトリになっている場合は、先に共有先への移行が必要です。
+`rename` transfers only `auth.json` and `config.toml`. SQLite databases, logs, and other runtime files are recreated as needed. Save any other profile-specific files before renaming. If `archived_sessions/` is a regular directory rather than a link, migrate its contents to the shared location first.
 
-## ライセンス
+## License
 
 [MIT](LICENSE)
