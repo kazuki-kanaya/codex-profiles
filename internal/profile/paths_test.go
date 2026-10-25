@@ -79,3 +79,78 @@ func TestBaseDir(t *testing.T) {
 		})
 	}
 }
+
+func TestSessionsDir(t *testing.T) {
+	if runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
+		t.Skip("home directory tests cover macOS and Linux")
+	}
+
+	home := t.TempDir()
+	empty := ""
+	absolute := filepath.Join(t.TempDir(), "sessions")
+	relative := filepath.Join("custom", "sessions")
+	expectedAbsolute, err := filepath.Abs(relative)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name     string
+		home     string
+		override *string
+		want     string
+		wantErr  bool
+	}{
+		{
+			name: "unset override",
+			home: home,
+			want: filepath.Join(home, ".codex", "sessions"),
+		},
+		{
+			name:     "empty override",
+			home:     home,
+			override: &empty,
+			want:     filepath.Join(home, ".codex", "sessions"),
+		},
+		{
+			name:     "absolute override",
+			home:     home,
+			override: &absolute,
+			want:     absolute,
+		},
+		{
+			name:     "relative override",
+			home:     home,
+			override: &relative,
+			want:     expectedAbsolute,
+		},
+		{
+			name:    "missing home",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("HOME", tt.home)
+			t.Setenv("CODEX_PROFILES_HOME", filepath.Join(home, "other-profiles"))
+			t.Setenv("CODEX_PROFILES_SESSIONS_DIR", "")
+			if tt.override == nil {
+				if err := os.Unsetenv("CODEX_PROFILES_SESSIONS_DIR"); err != nil {
+					t.Fatal(err)
+				}
+			} else {
+				t.Setenv("CODEX_PROFILES_SESSIONS_DIR", *tt.override)
+			}
+
+			got, err := SessionsDir()
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("SessionsDir() error = %v, wantErr = %v", err, tt.wantErr)
+			}
+			if got != tt.want {
+				t.Errorf("SessionsDir() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
