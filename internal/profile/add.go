@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+
+	"github.com/kazuki-kanaya/codex-profiles/internal/codex"
 )
 
 func Add(name string) (err error) {
@@ -48,7 +50,7 @@ func Add(name string) (err error) {
 	if err = os.WriteFile(configPath, config, 0o600); err != nil {
 		return err
 	}
-	if err := runCodex(ctx, profileDir, "login"); err != nil {
+	if err := codex.Run(ctx, profileDir, "login"); err != nil {
 		return err
 	}
 	return ctx.Err()

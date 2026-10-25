@@ -1,8 +1,11 @@
 package profile
 
 import (
+	"context"
 	"fmt"
 	"os"
+
+	"github.com/kazuki-kanaya/codex-profiles/internal/codex"
 )
 
 func Run(name string, args ...string) error {
@@ -19,5 +22,5 @@ func Run(name string, args ...string) error {
 		return fmt.Errorf("profile must be a real directory: %s", profileDir)
 	}
 
-	return RunCodex(profileDir, args...)
+	return codex.Run(context.Background(), profileDir, args...)
 }

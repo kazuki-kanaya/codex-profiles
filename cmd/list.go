@@ -8,6 +8,7 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/kazuki-kanaya/codex-profiles/internal/codex"
 	"github.com/kazuki-kanaya/codex-profiles/internal/profile"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +23,7 @@ var listCmd = &cobra.Command{
 			return err
 		}
 		results := make([]struct {
-			usage profile.Usage
+			usage codex.Usage
 			err   error
 		}, len(names))
 		var workers sync.WaitGroup
@@ -33,7 +34,12 @@ var listCmd = &cobra.Command{
 			go func() {
 				defer workers.Done()
 				defer func() { <-slots }()
-				results[i].usage, results[i].err = profile.ReadUsage(name)
+				home, err := profile.ProfileDir(name)
+				if err != nil {
+					results[i].err = err
+					return
+				}
+				results[i].usage, results[i].err = codex.ReadUsage(home)
 			}()
 		}
 		workers.Wait()

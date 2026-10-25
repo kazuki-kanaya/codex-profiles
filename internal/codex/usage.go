@@ -1,4 +1,4 @@
-package profile
+package codex
 
 import (
 	"context"
@@ -62,14 +62,10 @@ type Usage struct {
 	ResetCredits      *int
 }
 
-func ReadUsage(name string) (Usage, error) {
+func ReadUsage(home string) (Usage, error) {
 	var usage Usage
 
-	profileDir, err := ProfileDir(name)
-	if err != nil {
-		return usage, err
-	}
-	result, err := readUsage(profileDir)
+	result, err := readUsage(home)
 	usage.Email = result.Email
 	if err != nil {
 		return usage, err
@@ -101,14 +97,14 @@ func ReadUsage(name string) (Usage, error) {
 	return usage, nil
 }
 
-func readUsage(profileDir string) (quotaResult, error) {
+func readUsage(home string) (quotaResult, error) {
 	var result quotaResult
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "codex", "app-server")
-	cmd.Env = append(os.Environ(), "CODEX_HOME="+profileDir)
+	cmd.Env = append(os.Environ(), "CODEX_HOME="+home)
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
