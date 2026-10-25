@@ -1,0 +1,23 @@
+package profile
+
+import (
+	"fmt"
+	"os"
+)
+
+func Run(name string, args ...string) error {
+	profileDir, err := ProfileDir(name)
+	if err != nil {
+		return err
+	}
+
+	info, err := os.Lstat(profileDir)
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("profile must be a real directory: %s", profileDir)
+	}
+
+	return RunCodex(profileDir, args...)
+}
