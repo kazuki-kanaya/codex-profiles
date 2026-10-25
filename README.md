@@ -7,7 +7,7 @@
 <p>
 Use Codex CLI with multiple ChatGPT accounts.<br>
 Run accounts side by side and check their remaining usage limits in one place.<br>
-Session history is shared automatically with Codex Desktop, so you can pick up a session with another account.
+Session history is shared automatically across accounts and with Codex Desktop, so you can continue a session with a different account.
 </p>
 
 <p>
