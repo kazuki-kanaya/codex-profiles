@@ -1,10 +1,10 @@
 <div align="center">
 
-<h1>codex-profiles</h1>
+<h1>Codex Profiles</h1>
 <p>
-Codex CLIの複数アカウントを管理するツール。<br>
+複数のChatGPTアカウントでCodex CLIを使うためのツール。<br>
 複数アカウントを同時に起動でき、利用枠の残量もまとめて確認できます。<br>
-Codex Desktopとセッション履歴を共有し、別のアカウントから続きを再開することもできます。
+セッション履歴はCodex Desktopと自動で共有され、別のアカウントからも続きを再開できます。
 </p>
 
 <p>
@@ -16,20 +16,12 @@ Codex Desktopとセッション履歴を共有し、別のアカウントから�
 <p>
   <a href="#インストール">インストール</a> ·
   <a href="#使い方">使い方</a> ·
-  <a href="#履歴の共有">履歴の共有</a> ·
-  <a href="#設定">設定</a>
+  <a href="#仕組みと保存先">仕組みと保存先</a>
 </p>
 
 </div>
 
-アカウントごとに名前をつけて登録し、その名前でCodexを起動します。認証情報・設定・daemonを個別に持つので、別々のターミナルで並行して使えます。
-
-```sh
-codex-profiles main    # ターミナル1
-codex-profiles work    # ターミナル2
-```
-
-利用枠は `list` でまとめて確認できます。履歴はCodex Desktopと共有し、別のアカウントから続きを再開することもできます。
+![codex-profilesで4つのアカウントの利用枠を確認し、mainを起動する例](docs/images/usage.png)
 
 ## インストール
 
@@ -40,11 +32,7 @@ macOS・Linuxのarm64／amd64向けに配布しています。
 curl -fsSL https://raw.githubusercontent.com/kazuki-kanaya/codex-profiles/main/install.sh | sh
 ```
 
-インストール先は `~/.local/bin` です。PATHが通っていなければ、シェルの設定ファイルに追加してください。
-
-```sh
-export PATH="$HOME/.local/bin:$PATH"
-```
+インストール先は `~/.local/bin` です。PATHが未設定の場合は、zshなら `~/.zshrc`、bashなら `~/.bashrc` に追記します。表示された `source` コマンドを実行するか、新しいターミナルを開いてください。
 
 更新も同じインストールコマンドで行えます。別の場所に入れる場合は、`INSTALL_DIR` で指定できます。
 
@@ -71,9 +59,7 @@ brew install --cask kazuki-kanaya/tap/codex-profiles
 
 ## 使い方
 
-### アカウントを登録する
-
-`add` を実行するとCodexのログインが始まります。使うアカウントごとに登録してください。
+アカウントに名前をつけて登録します。`add` を実行するとCodexのログインが始まります。
 
 ```sh
 codex-profiles add main
@@ -81,18 +67,20 @@ codex-profiles add work
 codex-profiles list
 ```
 
-`list` にはメールアドレス、プラン、5時間・週間の残量、リセット時刻、リセットチケットの枚数を表示します。時刻はローカル時刻で、取得できない値は `-` になります。
-
-### Codexを起動する
-
-登録した名前を指定します。名前の後ろには、いつものCodexの引数を渡せます。
+登録した名前を指定すると、そのアカウントで起動します。それぞれ別のターミナルで実行すれば、同時に使えます。
 
 ```sh
-codex-profiles main
+codex-profiles main    # ターミナル1
+codex-profiles work    # ターミナル2
+```
+
+名前の後ろには、いつものCodexの引数を渡せます。
+
+```sh
 codex-profiles work resume <SESSION_ID>
 ```
 
-短い名前で呼びたい場合は、エイリアスを設定してください。
+短い名前で使うなら、シェルの設定にエイリアスを追加してください。
 
 ```sh
 alias cdx='codex-profiles'
@@ -110,11 +98,13 @@ alias cdx='codex-profiles'
 | `version` / `--version` | バージョンを表示 |
 | `help` | ヘルプを表示 |
 
+`list` のリセット時刻はローカル時刻です。取得できない値は `-` で表示します。
+
 名前は小文字の英字で始め、以降は小文字の英字・数字・`-`・`_` が使えます。コマンド名は使えません。
 
-## 履歴の共有
+## 仕組みと保存先
 
-アカウントごとに `CODEX_HOME` を分け、認証とトークン更新はCodexに任せています。Desktopの認証情報や設定は変更しません。
+アカウントを登録すると、専用の `CODEX_HOME` と共有履歴へのリンクを作成します。履歴共有のための設定は不要です。認証とトークン更新はCodexに任せ、Desktopの認証情報や設定は変更しません。
 
 ```text
 ~/.codex-profiles/
@@ -131,9 +121,10 @@ alias cdx='codex-profiles'
 
 同じセッションを複数のCodexから同時に更新しないでください。履歴一覧は完全には同期されないため、再開時はセッションIDを指定してください。`/fork`・`/side` や履歴形式の互換性は、Codexのバージョンに依存します。
 
-## 設定
+<details>
+<summary>保存先を変更したい場合</summary>
 
-通常は設定不要です。保存先を変えたい場合は、以下の環境変数で指定できます。
+環境変数で指定できます。通常は変更不要です。
 
 | 環境変数 | デフォルト |
 | --- | --- |
@@ -142,6 +133,8 @@ alias cdx='codex-profiles'
 | `CODEX_PROFILES_ARCHIVED_SESSIONS_DIR` | `~/.codex/archived_sessions` |
 
 設定を変えても既存データやリンクは移動しません。プロファイルと共有履歴の保存先は、互いの配下に置かないでください。SQLiteを分離するため、`CODEX_SQLITE_HOME` は設定せずに使ってください。
+
+</details>
 
 ## 名前変更・削除について
 
