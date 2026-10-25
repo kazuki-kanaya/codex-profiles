@@ -80,6 +80,88 @@ func TestBaseDir(t *testing.T) {
 	}
 }
 
+func TestProfileDir(t *testing.T) {
+	if runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
+		t.Skip("home directory tests cover macOS and Linux")
+	}
+
+	home := t.TempDir()
+	absolute := filepath.Join(t.TempDir(), "profiles")
+	relative := filepath.Join("custom", "profiles")
+	expectedAbsolute, err := filepath.Abs(relative)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name        string
+		home        string
+		baseDir     string
+		profileName string
+		want        string
+		wantErr     bool
+	}{
+		{
+			name:        "default base directory",
+			home:        home,
+			profileName: "main",
+			want:        filepath.Join(home, ".codex-profiles", "main"),
+		},
+		{
+			name:        "different profile name",
+			home:        home,
+			profileName: "work-2",
+			want:        filepath.Join(home, ".codex-profiles", "work-2"),
+		},
+		{
+			name:        "absolute base directory",
+			home:        home,
+			baseDir:     absolute,
+			profileName: "main",
+			want:        filepath.Join(absolute, "main"),
+		},
+		{
+			name:        "relative base directory",
+			home:        home,
+			baseDir:     relative,
+			profileName: "main",
+			want:        filepath.Join(expectedAbsolute, "main"),
+		},
+		{
+			name:        "missing home",
+			profileName: "main",
+			wantErr:     true,
+		},
+		{
+			name:        "override without home",
+			baseDir:     absolute,
+			profileName: "main",
+			want:        filepath.Join(absolute, "main"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("HOME", tt.home)
+			t.Setenv("CODEX_PROFILES_HOME", tt.baseDir)
+
+			got, err := ProfileDir(tt.profileName)
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ProfileDir(%q) error = %v, wantErr = %v", tt.profileName, err, tt.wantErr)
+			}
+			if got != tt.want {
+				t.Errorf("ProfileDir(%q) = %q, want %q", tt.profileName, got, tt.want)
+			}
+			if err == nil {
+				if _, err := os.Lstat(got); !os.IsNotExist(err) {
+					t.Errorf("ProfileDir() must not create the directory: %v", err)
+				}
+			}
+		})
+	}
+}
+
 func TestSessionsDir(t *testing.T) {
 	if runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
 		t.Skip("home directory tests cover macOS and Linux")
