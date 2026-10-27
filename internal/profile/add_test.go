@@ -322,12 +322,6 @@ func TestAddProcess(t *testing.T) {
 			t.Fatal("missing helper arguments")
 		}
 		home := os.Getenv("CODEX_HOME")
-		requireAddFile(t, filepath.Join(home, "config.toml"), "cli_auth_credentials_store = \"file\"\n")
-		for name, variable := range map[string]string{"sessions": "CODEX_PROFILES_SESSIONS_DIR", "archived_sessions": "CODEX_PROFILES_ARCHIVED_SESSIONS_DIR"} {
-			if got, err := os.Readlink(filepath.Join(home, name)); err != nil || got != os.Getenv(variable) {
-				t.Fatalf("profile was not ready before login: %s", name)
-			}
-		}
 		data, err := json.Marshal(struct {
 			Home string
 			Args []string
@@ -337,6 +331,12 @@ func TestAddProcess(t *testing.T) {
 		}
 		if err := os.WriteFile(os.Getenv("CODEX_PROFILES_TEST_LOG"), data, 0o600); err != nil {
 			t.Fatal(err)
+		}
+		requireAddFile(t, filepath.Join(home, "config.toml"), "cli_auth_credentials_store = \"file\"\n")
+		for name, variable := range map[string]string{"sessions": "CODEX_PROFILES_SESSIONS_DIR", "archived_sessions": "CODEX_PROFILES_ARCHIVED_SESSIONS_DIR"} {
+			if got, err := os.Readlink(filepath.Join(home, name)); err != nil || got != os.Getenv(variable) {
+				t.Fatalf("profile was not ready before login: %s", name)
+			}
 		}
 		if err := os.WriteFile(filepath.Join(home, "auth.json"), []byte("test credentials"), 0o600); err != nil {
 			t.Fatal(err)
